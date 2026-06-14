@@ -18,12 +18,13 @@ const schema = z.object({
   scheduledAt: z.string().datetime().nullable(),
 });
 
-type Ctx = { params: { id: string } };
+type Ctx = { params: Promise<{ id: string }> };
 
-export const GET = handler(async (req: NextRequest, { params }: Ctx) => {
+export const GET = handler(async (req: NextRequest, ctx: Ctx) => {
   requireUser(req);
+  const { id } = await ctx.params;
   const campaign = await prisma.campaign.findUnique({
-    where: { id: params.id },
+    where: { id },
     include: { segment: true, template: true },
   });
   if (!campaign) throw new HttpError(404, "Campaign not found");
@@ -37,21 +38,20 @@ export const GET = handler(async (req: NextRequest, { params }: Ctx) => {
   return json({ campaign, logs });
 });
 
-export const PUT = handler(async (req: NextRequest, { params }: Ctx) => {
+export const PUT = handler(async (req: NextRequest, ctx: Ctx) => {
   requireUser(req);
+  const { id } = await ctx.params;
   const data = schema.partial().parse(await req.json());
   const update: Record<string, unknown> = { ...data };
   if (data.scheduledAt !== undefined)
     update.scheduledAt = data.scheduledAt ? new Date(data.scheduledAt) : null;
-  const campaign = await prisma.campaign.update({
-    where: { id: params.id },
-    data: update,
-  });
+  const campaign = await prisma.campaign.update({ where: { id }, data: update });
   return json(campaign);
 });
 
-export const DELETE = handler(async (req: NextRequest, { params }: Ctx) => {
+export const DELETE = handler(async (req: NextRequest, ctx: Ctx) => {
   requireUser(req);
-  await prisma.campaign.delete({ where: { id: params.id } });
+  const { id } = await ctx.params;
+  await prisma.campaign.delete({ where: { id } });
   return new Response(null, { status: 204 });
 });

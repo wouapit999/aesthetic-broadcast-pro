@@ -8,11 +8,12 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
-type Ctx = { params: { id: string } };
+type Ctx = { params: Promise<{ id: string }> };
 
-export const POST = handler(async (req: NextRequest, { params }: Ctx) => {
+export const POST = handler(async (req: NextRequest, ctx: Ctx) => {
   requireUser(req);
-  const campaign = await prisma.campaign.findUnique({ where: { id: params.id } });
+  const { id } = await ctx.params;
+  const campaign = await prisma.campaign.findUnique({ where: { id } });
   if (!campaign) throw new HttpError(404, "Campaign not found");
   if (campaign.status === "sending")
     throw new HttpError(409, "Campaign is already sending");
@@ -46,7 +47,7 @@ export const POST = handler(async (req: NextRequest, { params }: Ctx) => {
     },
   });
 
-  // Best-effort: send the first batch immediately; the Vercel Cron job
+  // Best-effort: send the first batch immediately; the scheduled function
   // (/api/cron/dispatch) drains the rest minute by minute.
   let firstBatch = { processed: 0, sent: 0, failed: 0 };
   if (!scheduledInFuture) firstBatch = await dispatchQueued();

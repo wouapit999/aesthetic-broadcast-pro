@@ -16,25 +16,24 @@ const schema = z.object({
   notes: z.string().nullable(),
 });
 
-type Ctx = { params: { id: string } };
+type Ctx = { params: Promise<{ id: string }> };
 
-export const PUT = handler(async (req: NextRequest, { params }: Ctx) => {
+export const PUT = handler(async (req: NextRequest, ctx: Ctx) => {
   requireUser(req);
+  const { id } = await ctx.params;
   const data = schema.partial().parse(await req.json());
   const update: Record<string, unknown> = { ...data };
   if (data.phone) update.phone = normalizePhone(data.phone);
   if (data.birthday !== undefined)
     update.birthday = data.birthday ? new Date(data.birthday) : null;
 
-  const contact = await prisma.contact.update({
-    where: { id: params.id },
-    data: update,
-  });
+  const contact = await prisma.contact.update({ where: { id }, data: update });
   return json(contact);
 });
 
-export const DELETE = handler(async (req: NextRequest, { params }: Ctx) => {
+export const DELETE = handler(async (req: NextRequest, ctx: Ctx) => {
   requireUser(req);
-  await prisma.contact.delete({ where: { id: params.id } });
+  const { id } = await ctx.params;
+  await prisma.contact.delete({ where: { id } });
   return new Response(null, { status: 204 });
 });

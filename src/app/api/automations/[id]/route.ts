@@ -15,17 +15,19 @@ const schema = z.object({
   enabled: z.boolean(),
 });
 
-type Ctx = { params: { id: string } };
+type Ctx = { params: Promise<{ id: string }> };
 
-export const PUT = handler(async (req: NextRequest, { params }: Ctx) => {
+export const PUT = handler(async (req: NextRequest, ctx: Ctx) => {
   requireUser(req);
+  const { id } = await ctx.params;
   const data = schema.partial().parse(await req.json());
-  const a = await prisma.automation.update({ where: { id: params.id }, data });
+  const a = await prisma.automation.update({ where: { id }, data });
   return json(a);
 });
 
-export const DELETE = handler(async (req: NextRequest, { params }: Ctx) => {
+export const DELETE = handler(async (req: NextRequest, ctx: Ctx) => {
   requireUser(req);
-  await prisma.automation.delete({ where: { id: params.id } });
+  const { id } = await ctx.params;
+  await prisma.automation.delete({ where: { id } });
   return new Response(null, { status: 204 });
 });

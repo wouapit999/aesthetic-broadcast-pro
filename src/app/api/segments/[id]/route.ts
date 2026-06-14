@@ -21,20 +21,19 @@ const ruleSchema = z.object({
 
 const schema = z.object({ name: z.string().min(1), rules: ruleSchema });
 
-type Ctx = { params: { id: string } };
+type Ctx = { params: Promise<{ id: string }> };
 
-export const PUT = handler(async (req: NextRequest, { params }: Ctx) => {
+export const PUT = handler(async (req: NextRequest, ctx: Ctx) => {
   requireUser(req);
+  const { id } = await ctx.params;
   const data = schema.partial().parse(await req.json());
-  const segment = await prisma.segment.update({
-    where: { id: params.id },
-    data,
-  });
+  const segment = await prisma.segment.update({ where: { id }, data });
   return json(segment);
 });
 
-export const DELETE = handler(async (req: NextRequest, { params }: Ctx) => {
+export const DELETE = handler(async (req: NextRequest, ctx: Ctx) => {
   requireUser(req);
-  await prisma.segment.delete({ where: { id: params.id } });
+  const { id } = await ctx.params;
+  await prisma.segment.delete({ where: { id } });
   return new Response(null, { status: 204 });
 });

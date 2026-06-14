@@ -24,9 +24,9 @@ backend, no Redis, no always-on worker.
 | App      | Next.js 14 (App Router), TypeScript, TailwindCSS |
 | API      | Next.js Route Handlers (`/app/api`) |
 | DB       | PostgreSQL + Prisma 7 (pg driver adapter) |
-| Queue    | DB-backed queue drained by **Vercel Cron** (`/api/cron/dispatch`) |
+| Queue    | DB-backed queue drained by a scheduled job (`/api/cron/dispatch`) |
 | Auth     | JWT (email/password, admin role) |
-| Hosting  | Vercel |
+| Hosting  | Netlify (or Vercel) |
 
 ---
 
@@ -47,9 +47,11 @@ Use any Postgres provider. Easiest options:
 Copy the **pooled** connection string (Neon pooler host, Supabase port `6543`, or the
 Vercel-provided `POSTGRES_PRISMA_URL`). A pooled URL is important for serverless.
 
-### 3. Import the repo on Vercel
-[vercel.com/new](https://vercel.com/new) → import your repo. Add these **Environment
-Variables**:
+### 3. Import the repo on Netlify
+[app.netlify.com](https://app.netlify.com) → **Add new site → Import an existing
+project** → pick your GitHub repo. Netlify auto-detects Next.js (`netlify.toml` pins
+the official `@netlify/plugin-nextjs` runtime and Node 20). Before deploying, add these
+**Environment variables** (Site configuration → Environment variables):
 
 | Key | Value |
 |-----|-------|
@@ -57,7 +59,7 @@ Variables**:
 | `JWT_SECRET` | a long random string |
 | `ADMIN_EMAIL` | `admin@aesthetic.shop` |
 | `ADMIN_PASSWORD` | a strong password |
-| `CRON_SECRET` | a random string (protects the cron route) |
+| `CRON_SECRET` | a random string (protects the dispatch route) |
 | `ANTHROPIC_API_KEY` | *(optional)* enables real AI copy |
 
 Click **Deploy**. The build runs `prisma generate` automatically.
@@ -76,12 +78,14 @@ A baseline migration (`prisma/migrations/0_init`) is committed, so
 `prisma migrate deploy` creates the full schema. Prefer a schema-only sync
 instead? Use `npm run prisma:push`.
 
-### 5. Cron
-`vercel.json` already registers a cron hitting `/api/cron/dispatch` every minute. On
-the Hobby plan Vercel runs project crons at least daily; upgrade for per-minute
-cadence, **or** trigger the endpoint yourself (e.g. cron-job.org calling it with the
-`Authorization: Bearer <CRON_SECRET>` header). Sends also kick off a first batch
-immediately when you press **Send**, so small campaigns go out at once.
+### 5. Scheduled sending
+`netlify/functions/dispatch.mjs` is a **Netlify Scheduled Function** that runs every
+minute and calls `/api/cron/dispatch` (authenticated with `CRON_SECRET`) to drain the
+send queue. It works automatically once deployed — no extra setup. Sends also kick off
+a first batch immediately when you press **Send**, so small campaigns go out at once.
+
+> **Deploying on Vercel instead?** `vercel.json` already registers an equivalent Vercel
+> Cron on the same `/api/cron/dispatch` route, so the project deploys to either host.
 
 ---
 

@@ -14,17 +14,19 @@ const schema = z.object({
   mediaUrl: z.string().url().nullable(),
 });
 
-type Ctx = { params: { id: string } };
+type Ctx = { params: Promise<{ id: string }> };
 
-export const PUT = handler(async (req: NextRequest, { params }: Ctx) => {
+export const PUT = handler(async (req: NextRequest, ctx: Ctx) => {
   requireUser(req);
+  const { id } = await ctx.params;
   const data = schema.partial().parse(await req.json());
-  const t = await prisma.template.update({ where: { id: params.id }, data });
+  const t = await prisma.template.update({ where: { id }, data });
   return json(t);
 });
 
-export const DELETE = handler(async (req: NextRequest, { params }: Ctx) => {
+export const DELETE = handler(async (req: NextRequest, ctx: Ctx) => {
   requireUser(req);
-  await prisma.template.delete({ where: { id: params.id } });
+  const { id } = await ctx.params;
+  await prisma.template.delete({ where: { id } });
   return new Response(null, { status: 204 });
 });

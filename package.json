@@ -1,0 +1,46 @@
+{
+  "name": "aesthetic-broadcast-vercel",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "prisma generate && next build",
+    "start": "next start",
+    "lint": "next lint",
+    "postinstall": "prisma generate",
+    "prisma:generate": "prisma generate",
+    "prisma:push": "prisma db push",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:deploy": "prisma migrate deploy",
+    "seed": "tsx prisma/seed.ts"
+  },
+  "dependencies": {
+    "@prisma/adapter-pg": "^7.8.0",
+    "@prisma/client": "^7.8.0",
+    "axios": "^1.17.0",
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^17.4.2",
+    "jsonwebtoken": "^9.0.2",
+    "next": "^14.2.35",
+    "papaparse": "^5.4.1",
+    "pg": "^8.21.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/jsonwebtoken": "^9.0.6",
+    "@types/node": "^22.7.0",
+    "@types/papaparse": "^5.3.14",
+    "@types/pg": "^8.20.0",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "autoprefixer": "^10.4.19",
+    "postcss": "^8.4.39",
+    "prisma": "^7.8.0",
+    "tailwindcss": "^3.4.7",
+    "tsx": "^4.19.1",
+    "typescript": "^5.5.4"
+  }
+}

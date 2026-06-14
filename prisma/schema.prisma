@@ -1,0 +1,170 @@
+// Aesthetic-Broadcast Pro (Vercel edition) — Prisma schema
+// Docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id             String    @id @default(cuid())
+  email          String    @unique
+  passwordHash   String    @map("password_hash")
+  profilePicture String?   @map("profile_picture")
+  role           String    @default("admin")
+  createdAt      DateTime  @default(now()) @map("created_at")
+
+  settings  Settings?
+  campaigns Campaign[]
+
+  @@map("users")
+}
+
+model Settings {
+  id     String @id @default(cuid())
+  userId String @unique @map("user_id")
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  businessName        String? @map("business_name")
+  businessDescription String? @map("business_description")
+  businessCategory    String? @default("Aesthetic") @map("business_category")
+  businessAddress     String? @map("business_address")
+  businessPhone       String? @map("business_phone")
+  openingHours        String? @map("opening_hours")
+
+  logoUrl        String? @map("logo_url")
+  primaryColor   String  @default("#E91E63") @map("primary_color")
+  secondaryColor String  @default("#9C27B0") @map("secondary_color")
+  accentColor    String  @default("#FF4081") @map("accent_color")
+  theme          String  @default("light")
+
+  language String @default("en")
+  country  String @default("Cameroon")
+
+  whatsappBusinessAccountId String? @map("whatsapp_business_account_id")
+  whatsappPhoneNumberId     String? @map("whatsapp_phone_number_id")
+  whatsappAccessToken       String? @map("whatsapp_access_token")
+  whatsappWebhookToken      String? @map("whatsapp_webhook_token")
+  whatsappConnected         Boolean @default(false) @map("whatsapp_connected")
+
+  notifyCampaignCompleted Boolean @default(true) @map("notify_campaign_completed")
+  notifyCampaignFailed    Boolean @default(true) @map("notify_campaign_failed")
+  notifyNewContact        Boolean @default(false) @map("notify_new_contact")
+  notifyAutomation        Boolean @default(false) @map("notify_automation")
+  pushNotifications       Boolean @default(false) @map("push_notifications")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("settings")
+}
+
+model Contact {
+  id        String    @id @default(cuid())
+  name      String
+  phone     String    @unique
+  tags      String[]  @default([])
+  gender    String?
+  birthday  DateTime?
+  notes     String?
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  logs CampaignLog[]
+
+  @@index([phone])
+  @@map("contacts")
+}
+
+model Segment {
+  id        String   @id @default(cuid())
+  name      String
+  rules     Json     @default("{}")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  campaigns Campaign[]
+
+  @@map("segments")
+}
+
+model Template {
+  id        String   @id @default(cuid())
+  name      String
+  language  String   @default("en")
+  category  String   @default("MARKETING")
+  body      String
+  mediaUrl  String?  @map("media_url")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  campaigns Campaign[]
+
+  @@map("templates")
+}
+
+model Campaign {
+  id           String    @id @default(cuid())
+  name         String
+  message      String
+  mediaUrl     String?   @map("media_url")
+  mediaType    String?   @map("media_type")
+  audience     String    @default("all")
+  audienceTags String[]  @default([]) @map("audience_tags")
+  segmentId    String?   @map("segment_id")
+  segment      Segment?  @relation(fields: [segmentId], references: [id])
+  templateId   String?   @map("template_id")
+  template     Template? @relation(fields: [templateId], references: [id])
+  status       String    @default("draft")
+  scheduledAt  DateTime? @map("scheduled_at")
+
+  totalRecipients Int @default(0) @map("total_recipients")
+  sentCount       Int @default(0) @map("sent_count")
+  deliveredCount  Int @default(0) @map("delivered_count")
+  readCount       Int @default(0) @map("read_count")
+  failedCount     Int @default(0) @map("failed_count")
+  replyCount      Int @default(0) @map("reply_count")
+
+  createdById String? @map("created_by_id")
+  createdBy   User?   @relation(fields: [createdById], references: [id])
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  logs CampaignLog[]
+
+  @@map("campaigns")
+}
+
+model CampaignLog {
+  id         String   @id @default(cuid())
+  campaignId String   @map("campaign_id")
+  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  contactId  String   @map("contact_id")
+  contact    Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+  status    String   @default("queued")
+  attempts  Int      @default(0)
+  messageId String?  @map("message_id")
+  error     String?
+  timestamp DateTime @default(now())
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([campaignId])
+  @@index([messageId])
+  @@index([status])
+  @@map("campaign_logs")
+}
+
+model Automation {
+  id         String   @id @default(cuid())
+  name       String
+  trigger    String
+  config     Json     @default("{}")
+  templateId String?  @map("template_id")
+  delayHours Int      @default(0) @map("delay_hours")
+  enabled    Boolean  @default(true)
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@map("automations")
+}

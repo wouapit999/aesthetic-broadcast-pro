@@ -1,0 +1,13 @@
+node_modules
+.next
+out
+.env
+.env.local
+next-env.d.ts
+
+# Prisma generated client
+src/generated
+
+.DS_Store
+*.log
+.vercel

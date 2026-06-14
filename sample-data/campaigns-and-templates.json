@@ -1,0 +1,43 @@
+{
+  "templates": [
+    {
+      "name": "Welcome Offer",
+      "language": "en",
+      "category": "MARKETING",
+      "body": "Welcome to {{business}} ✨ Enjoy 15% off your first facial this week. Reply BOOK to reserve your spot!"
+    },
+    {
+      "name": "Birthday Treat",
+      "language": "en",
+      "category": "MARKETING",
+      "body": "Happy Birthday {{name}}! 🎉 Celebrate with a complimentary glow facial on us. Valid this month only 💆‍♀️"
+    },
+    {
+      "name": "Flash Promo (FR)",
+      "language": "fr",
+      "category": "MARKETING",
+      "body": "Offre flash ! 💖 -20% sur tous les soins du visage ce week-end chez {{business}}. Répondez OUI pour réserver."
+    }
+  ],
+  "campaigns": [
+    {
+      "name": "Weekend Facial Promo",
+      "message": "✨ This weekend only: 20% off all facials at Lumière Aesthetic Studio! Book now and glow ✨ Reply BOOK to reserve 💆‍♀️",
+      "audience": "all",
+      "mediaUrl": null,
+      "mediaType": null
+    },
+    {
+      "name": "VIP Exclusive Botox Day",
+      "message": "Hi {{name}}, as a VIP client you're invited to our private Botox Day with 15% off. Limited spots — reply YES to claim yours 💎",
+      "audience": "segment",
+      "segmentName": "VIP Clients"
+    },
+    {
+      "name": "Birthday Glow (automation)",
+      "message": "Happy Birthday {{name}}! 🎂 Enjoy a complimentary glow facial this month, on us 💕",
+      "audience": "tags",
+      "audienceTags": ["birthday"]
+    }
+  ]
+}
